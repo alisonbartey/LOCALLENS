@@ -13,10 +13,10 @@ from database import get_db, init_db
 from utils import haversine_distance, jwt_required_custom
 
 app = Flask(**name**)
-app.config[‘JWT_SECRET_KEY’] = os.environ.get(‘SESSION_SECRET’, ‘dev-secret-key-change-in-production’)
-app.config[‘JWT_ACCESS_TOKEN_EXPIRES’] = timedelta(days=7)
-app.config[‘UPLOAD_FOLDER’] = ‘uploads’
-app.config[‘MAX_CONTENT_LENGTH’] = 16 * 1024 * 1024
+app.config['JWT_SECRET_KEY'] = os.environ.get('SESSION_SECRET', 'dev-secret-key-change-in-production')
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=7)
+app.config['UPLOAD_FOLDER'] = 'uploads'
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 CORS(app)
 jwt = JWTManager(app)
@@ -280,7 +280,7 @@ finally:
     conn.close()
 ```
 
-@app.route(’/api/posts/<int:post_id>/unlike’, methods=[‘DELETE’])
+@app.route('/api/posts/<int:post_id>/unlike', methods=['DELETE'])
 @jwt_required_custom
 def unlike_post(post_id):
 user_id = get_jwt_identity()
