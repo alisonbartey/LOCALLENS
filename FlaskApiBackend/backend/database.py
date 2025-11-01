@@ -10,6 +10,8 @@ def get_db():
     if not DATABASE_URL:
         raise Exception("DATABASE_URL environment variable not set")
 
+    fixed_url = DATABASE_URL.replace("psql://", "postgresql://")
+    
     conn = psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
     return conn
 
