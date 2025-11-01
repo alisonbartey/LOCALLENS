@@ -1,84 +1,83 @@
+import os
 import psycopg2
 from psycopg2.extras import RealDictCursor
-import os
 
-DATABASE_URL = os.environ.get('DATABASE_URL')
+DATABASE_URL = os.environ.get("DATABASE_URL")
+
 
 def get_db():
-"""Get database connection with dictionary cursor"""
-if not DATABASE_URL:
-raise Exception("DATABASE_URL environment variable not set")
+    """Get database connection with dictionary cursor"""
+    if not DATABASE_URL:
+        raise Exception("DATABASE_URL environment variable not set")
 
-```
-conn = psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
-return conn
-```
+    conn = psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
+    return conn
+
 
 def init_db():
-"""Initialize database tables"""
-if not DATABASE_URL:
-print("WARNING: DATABASE_URL not set, skipping database initialization")
-return
+    """Initialize database tables"""
 
-```
-conn = get_db()
-cursor = conn.cursor()
+    if not DATABASE_URL:
+        print("WARNING: DATABASE_URL not set, skipping database initialization")
+        return
 
-# Users table
-cursor.execute('''
-    CREATE TABLE IF NOT EXISTS users (
-        id SERIAL PRIMARY KEY,
-        username VARCHAR(255) UNIQUE NOT NULL,
-        email VARCHAR(255) UNIQUE NOT NULL,
-        password_hash TEXT NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )
-''')
+    conn = get_db()
+    cursor = conn.cursor()
 
-# Posts table
-cursor.execute('''
-    CREATE TABLE IF NOT EXISTS posts (
-        id SERIAL PRIMARY KEY,
-        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-        image_path TEXT NOT NULL,
-        caption TEXT,
-        latitude REAL NOT NULL,
-        longitude REAL NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )
-''')
+    # Users table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id SERIAL PRIMARY KEY,
+            username VARCHAR(255) UNIQUE NOT NULL,
+            email VARCHAR(255) UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
 
-# Likes table
-cursor.execute('''
-    CREATE TABLE IF NOT EXISTS likes (
-        id SERIAL PRIMARY KEY,
-        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-        post_id INTEGER NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE(user_id, post_id)
-    )
-''')
+    # Posts table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS posts (
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            image_path TEXT NOT NULL,
+            caption TEXT,
+            latitude REAL NOT NULL,
+            longitude REAL NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
 
-# Comments table
-cursor.execute('''
-    CREATE TABLE IF NOT EXISTS comments (
-        id SERIAL PRIMARY KEY,
-        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-        post_id INTEGER NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
-        text TEXT NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )
-''')
+    # Likes table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS likes (
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            post_id INTEGER NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(user_id, post_id)
+        )
+    """)
 
-# Create index for geolocation queries
-cursor.execute('''
-    CREATE INDEX IF NOT EXISTS idx_posts_location 
-    ON posts(latitude, longitude)
-''')
+    # Comments table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS comments (
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            post_id INTEGER NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+            text TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
 
-conn.commit()
-cursor.close()
-conn.close()
+    # Index for faster location search
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_posts_location
+        ON posts(latitude, longitude)
+    """)
 
-print("Database initialized successfully!")
-```
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    print("✅ Database initialized successfully!")
