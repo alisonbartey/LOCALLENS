@@ -12,110 +12,107 @@ import uuid
 from database import get_db, init_db
 from utils import haversine_distance, jwt_required_custom
 
-app = Flask(**name**)
-app.config['JWT_SECRET_KEY'] = os.environ.get('SESSION_SECRET', 'dev-secret-key-change-in-production')
-app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=7)
-app.config['UPLOAD_FOLDER'] = 'uploads'
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+app = Flask(__name__)
+app.config["JWT_SECRET_KEY"] = os.environ.get("SESSION_SECRET", "dev-secret-key-change-in-production")
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(days=7)
+app.config["UPLOAD_FOLDER"] = "uploads"
+app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024
 
 CORS(app)
 jwt = JWTManager(app)
 
-ALLOWED_EXTENSIONS = {‘png’, ‘jpg’, ‘jpeg’, ‘gif’, ‘webp’}
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
 
 def allowed_file(filename):
-return ‘.’ in filename and filename.rsplit(’.’, 1)[1].lower() in ALLOWED_EXTENSIONS
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.before_request
 def initialize_database():
-if not hasattr(app, ‘db_initialized’):
-init_db()
-app.db_initialized = True
+    if not hasattr(app, "db_initialized"):
+        init_db()
+        app.db_initialized = True
 
-@app.route(’/uploads/<path:filename>’)
+@app.route("/uploads/<path:filename>")
 def serve_upload(filename):
-return send_from_directory(app.config[‘UPLOAD_FOLDER’], filename)
+    return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
 
-@app.route(’/api/register’, methods=[‘POST’])
+@app.route("/api/register", methods=["POST"])
 def register():
-data = request.get_json()
+    data = request.get_json()
 
-```
-if not data or not data.get('username') or not data.get('email') or not data.get('password'):
-    return jsonify({'error': 'Username, email, and password are required'}), 400
+    if not data or not data.get("username") or not data.get("email") or not data.get("password"):
+        return jsonify({"error": "Username, email, and password are required"}), 400
 
-username = data['username']
-email = data['email']
-password = data['password']
+    username = data["username"]
+    email = data["email"]
+    password = data["password"]
 
-if len(password) < 6:
-    return jsonify({'error': 'Password must be at least 6 characters'}), 400
+    if len(password) < 6:
+        return jsonify({"error": "Password must be at least 6 characters"}), 400
 
-password_hash = generate_password_hash(password)
+    password_hash = generate_password_hash(password)
 
-conn = get_db()
-cursor = conn.cursor()
+    conn = get_db()
+    cursor = conn.cursor()
 
-try:
-    cursor.execute(
-        'INSERT INTO users (username, email, password_hash) VALUES (%s, %s, %s) RETURNING id',
-        (username, email, password_hash)
-    )
-    user_id = cursor.fetchone()['id']
-    conn.commit()
-    
-    access_token = create_access_token(identity=user_id)
-    
-    return jsonify({
-        'message': 'User registered successfully',
-        'user': {
-            'id': user_id,
-            'username': username,
-            'email': email
-        },
-        'access_token': access_token
-    }), 201
-except psycopg2.IntegrityError:
-    conn.rollback()
-    return jsonify({'error': 'Username or email already exists'}), 409
-finally:
+    try:
+        cursor.execute(
+            "INSERT INTO users (username, email, password_hash) VALUES (%s, %s, %s) RETURNING id",
+            (username, email, password_hash)
+        )
+        user_id = cursor.fetchone()["id"]
+        conn.commit()
+
+        access_token = create_access_token(identity=user_id)
+
+        return jsonify({
+            "message": "User registered successfully",
+            "user": {
+                "id": user_id,
+                "username": username,
+                "email": email
+            },
+            "access_token": access_token
+        }), 201
+    except psycopg2.IntegrityError:
+        conn.rollback()
+        return jsonify({"error": "Username or email already exists"}), 409
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/api/login", methods=["POST"])
+def login():
+    data = request.get_json()
+
+    if not data or not data.get("username") or not data.get("password"):
+        return jsonify({"error": "Username and password are required"}), 400
+
+    username = data["username"]
+    password = data["password"]
+
+    conn = get_db()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
+    user = cursor.fetchone()
     cursor.close()
     conn.close()
-```
 
-@app.route(’/api/login’, methods=[‘POST’])
-def login():
-data = request.get_json()
+    if not user or not check_password_hash(user["password_hash"], password):
+        return jsonify({"error": "Invalid username or password"}), 401
 
-```
-if not data or not data.get('username') or not data.get('password'):
-    return jsonify({'error': 'Username and password are required'}), 400
+    access_token = create_access_token(identity=user["id"])
 
-username = data['username']
-password = data['password']
-
-conn = get_db()
-cursor = conn.cursor()
-
-cursor.execute('SELECT * FROM users WHERE username = %s', (username,))
-user = cursor.fetchone()
-cursor.close()
-conn.close()
-
-if not user or not check_password_hash(user['password_hash'], password):
-    return jsonify({'error': 'Invalid username or password'}), 401
-
-access_token = create_access_token(identity=user['id'])
-
-return jsonify({
-    'message': 'Login successful',
-    'user': {
-        'id': user['id'],
-        'username': user['username'],
-        'email': user['email']
-    },
-    'access_token': access_token
-}), 200
+    return jsonify({
+        "message": "Login successful",
+        "user": {
+            "id": user["id"],
+            "username": user["username"],
+            "email": user["email"]
+        },
+        "access_token": access_token
+    }), 200
 ```
 
 @app.route(’/api/posts’, methods=[‘POST’])
