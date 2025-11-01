@@ -5,9 +5,9 @@ import os
 DATABASE_URL = os.environ.get('DATABASE_URL')
 
 def get_db():
-“”“Get database connection with dictionary cursor”””
+"""Get database connection with dictionary cursor"""
 if not DATABASE_URL:
-raise Exception(“DATABASE_URL environment variable not set”)
+raise Exception("DATABASE_URL environment variable not set")
 
 ```
 conn = psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
@@ -15,7 +15,7 @@ return conn
 ```
 
 def init_db():
-“”“Initialize database tables”””
+"""Initialize database tables"""
 if not DATABASE_URL:
 print(“WARNING: DATABASE_URL not set, skipping database initialization”)
 return
