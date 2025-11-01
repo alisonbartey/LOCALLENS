@@ -17,7 +17,7 @@ return conn
 def init_db():
 """Initialize database tables"""
 if not DATABASE_URL:
-print(“WARNING: DATABASE_URL not set, skipping database initialization”)
+print("WARNING: DATABASE_URL not set, skipping database initialization")
 return
 
 ```
