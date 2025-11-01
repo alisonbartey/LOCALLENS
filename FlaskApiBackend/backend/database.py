@@ -2,7 +2,7 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 import os
 
-DATABASE_URL = os.environ.get(‘DATABASE_URL’)
+DATABASE_URL = os.environ.get('DATABASE_URL')
 
 def get_db():
 “”“Get database connection with dictionary cursor”””
