@@ -18,7 +18,13 @@ app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(days=7)
 app.config["UPLOAD_FOLDER"] = "uploads"
 app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16MB max upload
 
-CORS(app)
+CORS(app, resources={
+    r"/api/*": {
+        "origins": ["https://locallens-xi.vercel.app"],
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"]
+    }
+})
 jwt = JWTManager(app)
 
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
