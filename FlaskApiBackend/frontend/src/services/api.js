@@ -18,11 +18,12 @@ export const authAPI = {
 };
 
 export const postsAPI = {
-  create: (formData) => api.post('/posts', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  }),
+  create: (formData) =>
+    api.post('/posts', formData), // ✅ remove headers completely
+
   getFeed: (latitude, longitude) => 
     api.get('/feed', { params: { latitude, longitude } }),
+
   like: (postId) => api.post(`/posts/${postId}/like`),
   unlike: (postId) => api.delete(`/posts/${postId}/unlike`),
 };
