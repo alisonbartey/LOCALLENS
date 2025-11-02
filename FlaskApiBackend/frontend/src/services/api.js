@@ -18,10 +18,10 @@ export const authAPI = {
 };
 
 export const postsAPI = {
-  create: (formData) =>
-    api.post('/posts', formData), // ✅ remove headers completely
+  // ✅ Removed manual Content-Type header
+  create: (formData) => api.post('/posts', formData),
 
-  getFeed: (latitude, longitude) => 
+  getFeed: (latitude, longitude) =>
     api.get('/feed', { params: { latitude, longitude } }),
 
   like: (postId) => api.post(`/posts/${postId}/like`),
